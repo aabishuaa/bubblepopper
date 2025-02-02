@@ -9,16 +9,20 @@ canvas {
     display: block;
 }
 
-.pause-menu {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+.start-btn {
     font-family: 'Poppins', sans-serif;
-    font-size: 24px;
-    color: #7f347f;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 10px;
-    border-radius: 5px;
+    font-size: 36px;  /* Increase text size */
+    padding: 16px 40px;  /* Bigger button */
+    background-color: #8f5bbd;  /* Your purple */
+    color: white;
+    border: none;
+    border-radius: 20px;  /* Rounded corners */
     cursor: pointer;
-    z-index: 10; /* Ensure it's above the canvas */
+    transition: 0.3s;
+}
+
+.start-btn:hover {
+    background-color: white;
+    color: #8f5bbd;
+    border: 2px solid #8f5bbd;
 }
