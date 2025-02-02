@@ -59,11 +59,13 @@ class MainGameScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Lives (hearts)
-        this.hearts = [];
-        for (let i = 0; i < this.lives; i++) {
-            const heart = this.add.image(20 + i * 100, 20, 'heart').setScale(0.2).setOrigin(0, 0);
-            this.hearts.push(heart);
-        }
+                this.hearts = [];
+    for (let i = 0; i < this.lives; i++) {
+        const heart = this.add.image(20 + i * 100, 20, 'heart')
+            .setScale(0.2 * scaleFactor)  // Dynamically scale the hearts based on screen size
+            .setOrigin(0, 0);
+        this.hearts.push(heart);
+    }
 
         // Pause button
         this.pauseButton = this.add.text(this.sys.game.config.width - 60, 50, '⏸', {
