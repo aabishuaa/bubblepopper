@@ -7,12 +7,15 @@ class MainGameScene extends Phaser.Scene {
         this.load.audio('popSound', 'audio/pop.mp3');
         this.load.audio('backgroundMusic', 'audio/background-music.mp3');
         this.load.audio('readyAudio', 'audio/ready.mp3');
+        this.load.audio('bubbleRushStart', 'audio/bubble-rush.mp3');
         this.load.image('heart', 'images/life.png');
         this.load.image('bubble', 'images/bubble.png');
         this.load.image('bubbleLarge', 'images/bubble.png');
+        
     }
 
     create() {
+        
         // Initialize high score
         this.highScore = localStorage.getItem('highScore') || 0;
 
@@ -86,6 +89,14 @@ class MainGameScene extends Phaser.Scene {
 
         // Start spawning bubbles
         this.spawnBubbles();
+
+        // Timer to progressively increase bubble speed and spawn rate every 30 seconds
+        this.time.addEvent({
+            delay: 30000, // 30 seconds
+            callback: this.increaseDifficulty,
+            callbackScope: this,
+            loop: true,
+        });
     }
 
     playIntroAnimation() {
@@ -174,6 +185,18 @@ class MainGameScene extends Phaser.Scene {
             },
             loop: true,
         });
+    }
+
+    increaseDifficulty() {
+        if (this.gameOver) return;
+
+        // Decrease spawn interval (but not below 200ms)
+        this.spawnInterval = Math.max(200, this.spawnInterval - 50);
+        this.bubbleSpeedFactor += 0.1; // Increase bubble speed multiplier
+
+        // Restart the spawn timer with the updated interval
+        this.bubbleSpawnTimer.remove();
+        this.spawnBubbles();
     }
 
     popBubble(bubble, points) {
@@ -280,32 +303,55 @@ class MainGameScene extends Phaser.Scene {
         ).setOrigin(0.5).setInteractive();
 
         tryAgainButton.on('pointerdown', () => {
-            // Stop and restart the background music
+            // Stop background music and restart the game
             this.backgroundMusic.stop();
-            this.backgroundMusic.play();
-
-            // Restart the scene
             this.scene.restart();
         });
     }
 
     pauseGame() {
-        this.scene.pause();
-        this.bubbleSpawnTimer.paused = true; // Pause the bubble spawn timer
-        this.tweens.pauseAll(); // Pause all active tweens
+        if (!this.isPaused) {
+            this.isPaused = true;
+            this.backgroundMusic.pause();
+            
+            // Pause all active tweens
+            this.tweens.pauseAll();
+            
+            // Pause the bubble spawn timer
+            this.bubbleSpawnTimer.paused = true;
+            
+            // Disable bubble interactions
+            this.children.list.forEach((child) => {
+                if (child.type === 'Image' && child.texture.key === 'bubble') {
+                    child.disableInteractive();
+                }
+            });
 
-        // Hide pause button and show resume button
-        this.pauseButton.setVisible(false);
-        this.resumeButton.setVisible(true);
+            this.pauseButton.setVisible(false);
+            this.resumeButton.setVisible(true);
+        }
     }
-
+    
     resumeGame() {
-        this.scene.resume();
-        this.bubbleSpawnTimer.paused = false; // Resume the bubble spawn timer
-        this.tweens.resumeAll(); // Resume all active tweens
+        if (this.isPaused) {
+            this.isPaused = false;
+            this.backgroundMusic.resume();
+            
+            // Resume all tweens
+            this.tweens.resumeAll();
+            
+            // Resume the bubble spawn timer
+            this.bubbleSpawnTimer.paused = false;
+            
+            // Re-enable bubble interactions
+            this.children.list.forEach((child) => {
+                if (child.type === 'Image' && child.texture.key === 'bubble') {
+                    child.setInteractive();
+                }
+            });
 
-        // Hide resume button and show pause button
-        this.resumeButton.setVisible(false);
-        this.pauseButton.setVisible(true);
+            this.pauseButton.setVisible(true);
+            this.resumeButton.setVisible(false);
+        }
     }
 }
