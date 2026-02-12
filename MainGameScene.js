@@ -50,25 +50,31 @@ class MainGameScene extends Phaser.Scene {
 
         this.add.image(0, 0, 'gradient').setOrigin(0);
 
-        // Score text
+        // Responsive scale factor
+        this.scaleFactor = Math.min(1, this.sys.game.config.width / 1280);
+
+        // Score text - responsive font size
+        const scoreFontSize = Math.max(24, Math.round(48 * this.scaleFactor));
         this.scoreText = this.add.text(this.sys.game.config.width / 2, 60, 'Score: 0', {
             fontFamily: 'Poppins',
-            fontSize: '48px',
+            fontSize: scoreFontSize + 'px',
             color: '#7f347f',
             fontStyle: 'bold',
         }).setOrigin(0.5);
 
-        // Lives (hearts)
-     // Lives (hearts)
+        // Lives (hearts) - responsive spacing based on screen width
         this.hearts = [];
+        const heartSpacing = Math.min(100, (this.sys.game.config.width - 100) / this.lives);
+        const heartScale = Math.min(0.2, (this.sys.game.config.width / 1280) * 0.25);
         for (let i = 0; i < this.lives; i++) {
-            const heart = this.add.image(20 + i * 100, 20, 'heart').setScale(0.2).setOrigin(0, 0);
+            const heart = this.add.image(20 + i * heartSpacing, 20, 'heart').setScale(heartScale).setOrigin(0, 0);
             this.hearts.push(heart);
         }
-        // Pause button
-        this.pauseButton = this.add.text(this.sys.game.config.width - 60, 50, '⏸', {
+        // Pause button - responsive font size and position
+        const btnFontSize = Math.max(28, Math.round(48 * this.scaleFactor));
+        this.pauseButton = this.add.text(this.sys.game.config.width - 40, 40, '⏸', {
             fontFamily: 'Arial',
-            fontSize: '48px',
+            fontSize: btnFontSize + 'px',
             color: '#7f347f',
         }).setOrigin(0.5).setInteractive();
 
@@ -76,10 +82,10 @@ class MainGameScene extends Phaser.Scene {
             this.pauseGame();
         });
 
-        // Resume button (initially hidden)
-        this.resumeButton = this.add.text(this.sys.game.config.width - 60, 50, '▶', {
+        // Resume button (initially hidden) - responsive
+        this.resumeButton = this.add.text(this.sys.game.config.width - 40, 40, '▶', {
             fontFamily: 'Arial',
-            fontSize: '48px',
+            fontSize: btnFontSize + 'px',
             color: '#7f347f',
         }).setOrigin(0.5).setInteractive().setVisible(false);
 
@@ -115,10 +121,11 @@ class MainGameScene extends Phaser.Scene {
                     currentText.destroy();
                 }
 
-                // Display the current word (larger size, Poppins, bold)
+                // Display the current word - responsive size
+                const introFontSize = Math.max(36, Math.round(92 * Math.min(1, this.sys.game.config.width / 1280)));
                 currentText = this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2, words[currentWordIndex], {
                     fontFamily: 'Poppins',
-                    fontSize: '92px', // Significantly larger
+                    fontSize: introFontSize + 'px',
                     color: '#7f347f',
                     fontStyle: 'bold',
                 }).setOrigin(0.5);
@@ -236,71 +243,63 @@ class MainGameScene extends Phaser.Scene {
             localStorage.setItem('highScore', this.highScore);
         }
 
+        const w = this.sys.game.config.width;
+        const h = this.sys.game.config.height;
+        const sf = this.scaleFactor;
+        const centerX = w / 2;
+        const centerY = h / 2;
+
         const bg = this.add.rectangle(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2,
-            this.sys.game.config.width * 0.8,
-            this.sys.game.config.height * 0.6,
-            0xffffff,
-            0.9
+            centerX, centerY,
+            Math.min(w * 0.8, w - 40),
+            Math.min(h * 0.6, h - 80),
+            0xffffff, 0.9
         ).setOrigin(0.5).setStrokeStyle(4, 0x7f347f);
 
-        // Add a large bubble image to the popup
+        const popupH = bg.height;
+
+        // Add a large bubble image to the popup - scaled for screen
+        const bubbleScale = Math.min(0.5, sf * 0.6);
         const bubbleImage = this.add.image(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2 - 250,
+            centerX,
+            centerY - popupH * 0.38,
             'bubbleLarge'
-        ).setScale(0.5);
+        ).setScale(bubbleScale);
 
-        this.add.text(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2 - 150,
-            'Game Over!',
-            {
-                fontFamily: 'Poppins',
-                fontSize: '64px',
-                color: '#7f347f',
-                fontStyle: 'bold',
-            }
-        ).setOrigin(0.5);
+        const titleSize = Math.max(28, Math.round(64 * sf));
+        this.add.text(centerX, centerY - popupH * 0.25, 'Game Over!', {
+            fontFamily: 'Poppins',
+            fontSize: titleSize + 'px',
+            color: '#7f347f',
+            fontStyle: 'bold',
+        }).setOrigin(0.5);
 
-        this.add.text(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2 - 50,
-            `Final Score: ${this.score}`,
-            {
-                fontFamily: 'Poppins',
-                fontSize: '48px',
-                color: '#7f347f',
-                fontStyle: 'bold',
-            }
-        ).setOrigin(0.5);
+        const detailSize = Math.max(20, Math.round(48 * sf));
+        this.add.text(centerX, centerY - popupH * 0.05, `Final Score: ${this.score}`, {
+            fontFamily: 'Poppins',
+            fontSize: detailSize + 'px',
+            color: '#7f347f',
+            fontStyle: 'bold',
+        }).setOrigin(0.5);
 
-        this.add.text(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2 + 50,
-            `High Score: ${this.highScore}`,
-            {
-                fontFamily: 'Poppins',
-                fontSize: '48px',
-                color: '#7f347f',
-                fontStyle: 'bold',
-            }
-        ).setOrigin(0.5);
+        this.add.text(centerX, centerY + popupH * 0.12, `High Score: ${this.highScore}`, {
+            fontFamily: 'Poppins',
+            fontSize: detailSize + 'px',
+            color: '#7f347f',
+            fontStyle: 'bold',
+        }).setOrigin(0.5);
 
-        const tryAgainButton = this.add.text(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2 + 150,
-            'Try Again',
-            {
-                fontFamily: 'Poppins',
-                fontSize: '48px',
-                color: '#ffffff',
-                backgroundColor: '#7f347f',
-                padding: { x: 20, y: 10 },
-                align: 'center',
-            }
-        ).setOrigin(0.5).setInteractive();
+        const btnSize = Math.max(20, Math.round(48 * sf));
+        const btnPadX = Math.max(10, Math.round(20 * sf));
+        const btnPadY = Math.max(6, Math.round(10 * sf));
+        const tryAgainButton = this.add.text(centerX, centerY + popupH * 0.3, 'Try Again', {
+            fontFamily: 'Poppins',
+            fontSize: btnSize + 'px',
+            color: '#ffffff',
+            backgroundColor: '#7f347f',
+            padding: { x: btnPadX, y: btnPadY },
+            align: 'center',
+        }).setOrigin(0.5).setInteractive();
 
         tryAgainButton.on('pointerdown', () => {
             // Stop background music and restart the game
